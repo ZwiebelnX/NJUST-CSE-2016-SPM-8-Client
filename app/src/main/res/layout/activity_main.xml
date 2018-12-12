@@ -7,12 +7,80 @@
     tools:context=".MainActivity">
 
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hello World!"
+        android:id="@+id/text_view"
+        android:layout_width="138dp"
+        android:layout_height="42dp"
+        android:gravity="center"
+        android:text=" 智慧课堂"
+        android:textColor="#018b8b"
+        android:textSize="30dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.106" />
+
+
+    <TableLayout
+        android:layout_width="344dp"
+        android:layout_height="254dp"
+        android:stretchColumns="1"
+        tools:layout_editor_absoluteX="8dp"
+        tools:layout_editor_absoluteY="141dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TableRow
+            android:layout_width="272dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="96dp"
+                android:layout_height="80dp"
+                android:gravity="center"
+                android:text="用户名:"
+                android:textSize="19dp" />
+
+
+            <EditText
+                android:layout_width="175dp"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:selectAllOnFocus="true"
+                android:singleLine="true"
+                android:hint="请输入用户名" />
+        </TableRow>
+
+        <TableRow android:layout_height="113dp">
+
+            <TextView
+                android:layout_width="109dp"
+                android:layout_height="100dp"
+                android:gravity="center"
+                android:text="密 码:"
+                android:textSize="19dp" />
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:singleLine="true"
+                android:hint="请输入密码"
+                android:inputType="textPassword" />
+        </TableRow>
+
+        <Button
+            android:id="@+id/button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="登录"
+            tools:layout_editor_absoluteX="136dp"
+            tools:layout_editor_absoluteY="341dp" />
+
+    </TableLayout>
+
+
+
 
 </android.support.constraint.ConstraintLayout>
