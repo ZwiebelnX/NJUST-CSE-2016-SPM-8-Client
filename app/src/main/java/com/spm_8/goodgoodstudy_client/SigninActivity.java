@@ -15,6 +15,8 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.otherclass.Course;
+
 
 public class SigninActivity extends AppCompatActivity {
 
@@ -25,14 +27,17 @@ public class SigninActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signin);
-        String course=getIntent().getStringExtra("course");
+        //获取课程信息
+        Course course=(Course) getIntent().getSerializableExtra("course");
         TextView coursename=findViewById(R.id.courseName);
-        coursename.setText("课程"+course);
+        coursename.setText(course.getCourseName()+"("+course.getCourseClassroom()+")");
 
+        //申请相机权限
         if (!ActivityCompat.shouldShowRequestPermissionRationale(this,Manifest.permission.CAMERA)){
             Log.d("signin","没有相机权限");
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA},0);}
-
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA},0);
+        }
+        //摄像头开启的点击事件
         imageView=(ImageView)findViewById(R.id.picture);
         ImageButton button=findViewById(R.id.startPhoto);
         button.setOnClickListener(new View.OnClickListener() {
@@ -44,32 +49,31 @@ public class SigninActivity extends AppCompatActivity {
 
                     startActivityForResult(intent,TAKE_POTHO);
             }
-        });  }
+        });
+    }
 
 
 
-            protected void onActivityResult(int requestCode,int resultCode,Intent data)
-            {
-                Log.d("signin","返回数据");
-                switch (requestCode)
-                {
-                    case TAKE_POTHO:
-                        if(resultCode==RESULT_OK)
-                        {
-                            try{
+   protected void onActivityResult(int requestCode,int resultCode,Intent data)
+   {
+       Log.d("signin","返回数据");
+       switch (requestCode)
+       {
+           case TAKE_POTHO:
+               if(resultCode==RESULT_OK)
+               {
+                   try{
 
-                                Bitmap photo = (Bitmap) data.getExtras().get("data");
-                                imageView.setImageBitmap(photo);
+                       Bitmap photo = (Bitmap) data.getExtras().get("data");
+                       imageView.setImageBitmap(photo);
 
-                            }catch (Exception e)
-                            {
-                                e.printStackTrace();
-                            }
-                        }
-                        break;
-
-                    default:
-                            break;
-                }    }
+                       }catch (Exception e) {
+                       e.printStackTrace(); }
+               }
+               break;
+           default:
+               break;
+       }
+   }
 
 }
