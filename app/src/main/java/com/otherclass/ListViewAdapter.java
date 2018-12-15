@@ -1,4 +1,4 @@
-package com.spm_8.goodgoodstudy_client;
+package com.otherclass;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -9,11 +9,11 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import java.util.List;
-//这个类是ListView的小弟
+//这个类是select页面的小弟
 public class ListViewAdapter extends BaseAdapter {
-    private List<String> datas;
+    private List<Course> datas;
     private LayoutInflater inflater;
-    public ListViewAdapter(Context context, List<String>datas){
+    public ListViewAdapter(Context context, List<Course>datas){
         inflater=LayoutInflater.from(context);
         this.datas=datas;
     }
@@ -37,7 +37,7 @@ public class ListViewAdapter extends BaseAdapter {
             viewHolder=(ViewHolder) convertView.getTag();
 
         }
-        viewHolder.text1.setText(datas.get(position));
+        viewHolder.text1.setText(datas.get(position).getCourseName()+"("+datas.get(position).getCourseClassroom()+")");
         return convertView;
     }
    private class ViewHolder{
