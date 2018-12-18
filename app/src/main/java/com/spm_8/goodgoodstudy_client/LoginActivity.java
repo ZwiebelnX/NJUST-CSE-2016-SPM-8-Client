@@ -12,6 +12,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 import org.json.*;
 
+import com.R;
 import com.otherclass.Course;
 
 import java.io.IOException;

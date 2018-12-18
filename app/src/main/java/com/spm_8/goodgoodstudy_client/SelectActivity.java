@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
+import com.R;
 import com.otherclass.Course;
 import com.otherclass.ListViewAdapter;
 

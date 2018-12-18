@@ -15,6 +15,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.R;
 import com.otherclass.Course;
 
 
@@ -48,6 +49,17 @@ public class SigninActivity extends AppCompatActivity {
                     Intent intent=new Intent("android.media.action.IMAGE_CAPTURE");
 
                     startActivityForResult(intent,TAKE_POTHO);
+            }
+        });
+        Button firmbut=findViewById(R.id.affirm);
+        firmbut.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                Intent intent=new Intent();
+                intent.setClass(SigninActivity.this, CheckActivity.class);
+                startActivity(intent);
+
             }
         });
     }
