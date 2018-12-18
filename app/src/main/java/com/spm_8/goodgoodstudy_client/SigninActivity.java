@@ -78,8 +78,18 @@ public class SigninActivity extends AppCompatActivity {
                     startActivityForResult(intent,TAKE_POTHO);
             }
         });
+        //补签的点击事件
+        Button replenishSign=findViewById(R.id.replenishSign);
+        replenishSign.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                setReSign();
+            }
+        });
+
+
         initStudents();
-        setReSign();
+
     }
 
 
