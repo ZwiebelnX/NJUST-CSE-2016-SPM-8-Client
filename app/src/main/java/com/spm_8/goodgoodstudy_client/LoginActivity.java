@@ -113,18 +113,20 @@ public class LoginActivity extends AppCompatActivity {
 
 
     };
-    //UI操作放在了hander里
-    private Handler handler=new Handler(){
+    //UI操作放在了handler里
+    private  Handler handler=new Handler(){
         public void handleMessage(Message msg){
             try{
                 courses=new ArrayList<>();
                 String str=(String)msg.obj;
                 JSONObject json = new JSONObject(str);
+
                 result=json.getString("msg");
                 JSONArray array=(JSONArray) json.get("courseList");
 
             for(int i=0;i<array.length();i++){
                 JSONObject obj = (JSONObject)array.get(i);
+
 
                 Course course=new Course(obj.getString("courseID")
                                         ,obj.getString("courseName")
