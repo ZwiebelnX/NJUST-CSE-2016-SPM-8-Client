@@ -6,6 +6,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.support.v7.app.AppCompatActivity;
 
+
 import com.R;
 import com.otherclass.Camera2BasicFragment;
 
