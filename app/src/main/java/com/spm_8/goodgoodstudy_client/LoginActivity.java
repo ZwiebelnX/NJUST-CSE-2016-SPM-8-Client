@@ -120,6 +120,7 @@ public class LoginActivity extends AppCompatActivity {
             try{
                 courses=new ArrayList<>();
                 String str=(String)msg.obj;
+                Log.d("LoginResponse:",str);
                 JSONObject json = new JSONObject(str);
 
                 result=json.getString("msg");
@@ -140,7 +141,7 @@ public class LoginActivity extends AppCompatActivity {
             }catch (Exception ex){
                 Log.d("LoginResponse:", ex.toString());
             }
-            if(result.equals("SUCCESS_TEACHER")||result.equals("SUCCESS_ADMIN")){
+            if((result!=null&&result.equals("SUCCESS_TEACHER"))||(result!=null&&result.equals("SUCCESS_ADMIN"))){
 
                 Toast.makeText(LoginActivity.this,"登录成功",Toast.LENGTH_LONG).show();
                 intent.putExtra("courses", (Serializable)courses);
