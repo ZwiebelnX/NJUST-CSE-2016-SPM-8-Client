@@ -129,7 +129,7 @@ public class SigninActivity extends AppCompatActivity {
                 }
                 else{
 
-
+                    intent.putExtra("course",(Course) getIntent().getSerializableExtra("course"));
                     startActivity(intent);
                 }
             }
@@ -171,6 +171,7 @@ public class SigninActivity extends AppCompatActivity {
                        builder.setType(MultipartBody.FORM);
                        builder.addFormDataPart("img","signin.jpg",fileBody);
                        builder.addFormDataPart("courseID",courseID);
+
                        builder.addFormDataPart("signType","SIGN");
 
                        RequestBody requestBody=builder.build();

@@ -1,3 +1,19 @@
+/*
+ * Copyright 2017 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *       http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.otherclass;
 import android.Manifest;
 import android.app.Activity;
@@ -7,6 +23,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.Point;
@@ -27,6 +44,7 @@ import android.media.ImageReader;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
@@ -45,7 +63,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.R;
+import com.spm_8.goodgoodstudy_client.CheckActivity;
+import com.spm_8.goodgoodstudy_client.SigninActivity;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -57,6 +81,15 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class Camera2BasicFragment extends Fragment
         implements View.OnClickListener, ActivityCompat.OnRequestPermissionsResultCallback {
@@ -119,6 +152,17 @@ public class Camera2BasicFragment extends Fragment
      * {@link TextureView.SurfaceTextureListener} handles several lifecycle events on a
      * {@link TextureView}.
      */
+    // new variable
+    private long mtime;
+    private TextView textview_serious;
+    private TextView textview_getdistracted;
+    private String mcourseID;
+    private OkHttpClient client;
+    private int mCNT;
+    private String mtype;
+    private String checkResult;
+    private String checkpercent;
+
     private final TextureView.SurfaceTextureListener mSurfaceTextureListener
             = new TextureView.SurfaceTextureListener() {
 
@@ -179,7 +223,6 @@ public class Camera2BasicFragment extends Fragment
             mCameraOpenCloseLock.release();
             mCameraDevice = cameraDevice;
             createCameraPreviewSession();
-
         }
 
         @Override
@@ -231,7 +274,8 @@ public class Camera2BasicFragment extends Fragment
 
         @Override
         public void onImageAvailable(ImageReader reader) {
-            mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
+            //mBackgroundHandler.post(new ImageSaver(reader.acquireNextImage(), mFile));
+            Log.i("imagelister","救救孩子");
         }
 
     };
@@ -272,26 +316,70 @@ public class Camera2BasicFragment extends Fragment
      * A {@link CameraCaptureSession.CaptureCallback} that handles events related to JPEG capture.
      */
 
-    private static byte[] YUV_420_888toNV21(Image image) {
-        byte[] nv21;
-        ByteBuffer yBuffer = image.getPlanes()[0]. getBuffer();
-        ByteBuffer uBuffer = image.getPlanes()[1]. getBuffer();
-        ByteBuffer vBuffer = image.getPlanes()[2]. getBuffer();
+    private void commuInfo(){
+        Bitmap photo = mTextureView.getBitmap();
+        Log.i("bitmap","应该拿到bitmap 2秒一个");
+        if(null !=photo) {
 
-        int ySize = yBuffer.remaining();
-        int uSize = uBuffer.remaining();
-        int vSize = vBuffer.remaining();
+            try{
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                photo.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+                byte[]bytes=null;
+                bytes=baos.toByteArray();
+                baos.close();
+                String dataString=new String(bytes,"ISO-8859-1");
+                MediaType type=MediaType.parse("application/octet-stream");
+                RequestBody fileBody=RequestBody.create(type,bytes);
+                //Log.d("图片",dataString);
+                //times+=1;
 
-        nv21 = new byte[ySize + uSize + vSize];
+                MultipartBody.Builder builder=new MultipartBody.Builder();
+                builder.setType(MultipartBody.FORM);
+                builder.addFormDataPart("img","check.jpg",fileBody);
+                builder.addFormDataPart("courseID",mcourseID);
+                builder.addFormDataPart("Type",mtype);
+                builder.addFormDataPart("checkCNT",String.valueOf(mCNT));
 
-//U and V are swapped
-        yBuffer. get(nv21, 0, ySize);
-        vBuffer. get(nv21, ySize, vSize);
-        uBuffer. get(nv21, ySize + vSize, uSize);
+                RequestBody requestBody=builder.build();
 
-        Log.i("tra","转换图片到数组");
-        return nv21;
+                Request request = new Request.Builder().url("http://111.230.31.228:8080/SPM/status.check")
+                        .post(requestBody).build();
+                //单独设置参数 比如读取超时时间
+                Call call = client.newBuilder().writeTimeout(15, TimeUnit.SECONDS).build().newCall(request);
+
+                call.enqueue(mhttpcallback);
+
+            }catch (Exception e) {
+
+                Log.d("checkERROR",e.toString());
+            }
+        }
+        else
+            Log.i("bitmao","救救孩子，或去不了Bitmap");
     }
+
+    private Callback mhttpcallback=new Callback() {
+        @Override
+        public void onFailure(Call call, IOException e) {
+            Log.w("checkFalse:",e.toString());
+        }
+
+        @Override
+        public void onResponse(Call call, Response response) throws IOException {
+            try{
+                String str = new String(response.body().bytes(), "utf-8");
+
+                Log.w("checkResponse:", str);
+
+                Message msg = mBackgroundHandler.obtainMessage();
+                msg.obj = str;
+                msg.sendToTarget();
+            }catch (Exception ex){
+                Log.i("checkResponse:", ex.toString());
+            }
+
+        }
+    };
 
     private CameraCaptureSession.CaptureCallback mCaptureCallback
             = new CameraCaptureSession.CaptureCallback() {
@@ -300,12 +388,11 @@ public class Camera2BasicFragment extends Fragment
             switch (mState) {
                 case STATE_PREVIEW: {
                     // We have nothing to do when the camera preview is working normally.
-                   // Log.i("de","zaiyulan");
-                    //long time = System.currentTimeMillis();
-                    //if(time%2 == 0){
-                        //发送图片，这里先吧意思图片的实例的类型打log
-
-                   // }
+                    Long time = System.currentTimeMillis();
+                    if(time - mtime <=2000)
+                        return;
+                    mtime = time;
+                    commuInfo();//2000ms后传数据
                     break;
                 }
                 case STATE_WAITING_LOCK: {
@@ -353,7 +440,6 @@ public class Camera2BasicFragment extends Fragment
                                         @NonNull CaptureRequest request,
                                         @NonNull CaptureResult partialResult) {
             process(partialResult);
-            //Log.i("de","progressed");
         }
 
         @Override
@@ -361,7 +447,6 @@ public class Camera2BasicFragment extends Fragment
                                        @NonNull CaptureRequest request,
                                        @NonNull TotalCaptureResult result) {
             process(result);
-           // Log.i("de","completed");
         }
 
     };
@@ -432,8 +517,17 @@ public class Camera2BasicFragment extends Fragment
         }
     }
 
-    public static Camera2BasicFragment newInstance() {
-        return new Camera2BasicFragment();
+
+    public Camera2BasicFragment(){
+
+    }
+    public Camera2BasicFragment(String courseID){
+        this.mcourseID = courseID;
+    }
+
+
+    public static Camera2BasicFragment newInstance(String courseID) {
+        return new Camera2BasicFragment(courseID);
     }
 
     @Override
@@ -449,12 +543,11 @@ public class Camera2BasicFragment extends Fragment
         mTextureView = (AutoFitTextureView) view.findViewById(R.id.texture);
         textview_serious = view.findViewById(R.id.textView_serious);
         textview_getdistracted = view.findViewById(R.id.textView_getdistracted);
-
-    }
-
-    private void uploadImage(byte[] bytes)
-    {
-        //okhttp交互的地方
+        mtime = System.currentTimeMillis();
+        textview_serious.setText(mcourseID);
+        mCNT = 0;
+        mtype = "FIRST_CHECK";
+        client = new OkHttpClient();
     }
 
     @Override
@@ -467,7 +560,6 @@ public class Camera2BasicFragment extends Fragment
     public void onResume() {
         super.onResume();
         startBackgroundThread();
-
         // When the screen is turned off and turned back on, the SurfaceTexture is already
         // available, and "onSurfaceTextureAvailable" will not be called. In that case, we can open
         // a camera and start preview from here (otherwise, we wait until the surface is ready in
@@ -541,31 +633,8 @@ public class Camera2BasicFragment extends Fragment
                 mImageReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(),
                         ImageFormat.JPEG, /*maxImages*/2);
                 mImageReader.setOnImageAvailableListener(
-                        mOnImageAvailableListener, mBackgroundHandler);
+                        mOnImageAvailableListener, null);
 
-                traltReader = ImageReader.newInstance(largest.getWidth(), largest.getHeight(),ImageFormat.YUV_420_888,2);
-                traltReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
-                    @Override
-                    public void onImageAvailable(ImageReader imageReader) {
-                        long time = System.currentTimeMillis();
-                        if(time%2000!=0)
-                            return;
-
-                        Image image = null;
-                        try{
-                            image = imageReader.acquireLatestImage();
-                            Log.d("pose","害怕啊能这么精确吗,拍照了拍照了");
-                            if(image == null){
-                                return;
-                            }
-                            byte[] bytes = YUV_420_888toNV21(image);
-                            uploadImage(bytes);
-                        }finally {
-                            if(image!=null)
-                                image.close();
-                        }
-                    }
-                },null);
                 // Find out if we need to swap dimension to get the preview size relative to sensor
                 // coordinate.
                 int displayRotation = activity.getWindowManager().getDefaultDisplay().getRotation();
@@ -662,7 +731,7 @@ public class Camera2BasicFragment extends Fragment
             if (!mCameraOpenCloseLock.tryAcquire(2500, TimeUnit.MILLISECONDS)) {
                 throw new RuntimeException("Time out waiting to lock camera opening.");
             }
-            manager.openCamera(mCameraId, mStateCallback, mBackgroundHandler);
+            manager.openCamera(mCameraId, mStateCallback, null);
         } catch (CameraAccessException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
@@ -698,12 +767,73 @@ public class Camera2BasicFragment extends Fragment
     /**
      * Starts a background thread and its {@link Handler}.
      */
+
+    private Handler mUIHandler = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+             String info = (String) msg.obj;
+             textview_serious.setText(info);
+        }
+
+    };
+
     private void startBackgroundThread() {
         mBackgroundThread = new HandlerThread("CameraBackground");
         mBackgroundThread.start();
-        mBackgroundHandler = new Handler(mBackgroundThread.getLooper());
-    }
+        mBackgroundHandler = new Handler(mBackgroundThread.getLooper()){
+            @Override
+            public void handleMessage(Message msg){
+                //改ui
+                String info=" 烫烫烫";
+                try{
 
+                    String str=(String)msg.obj;
+                    JSONObject json = new JSONObject(str);
+                    Log.d("checkfindmaobing", json.toString());
+                    checkResult=json.getString("msg");
+                    if(checkResult!=null&&checkResult.equals("SERVER_ERROR")){
+                        info = "服务器错";
+                    }else{
+                        mCNT=Integer.parseInt(json.getString("checkCNT"));
+                        checkpercent = json.getString("result");
+                        mtype = "RECHECK";
+                    }
+
+                }catch (Exception ex){
+                    Log.d("checkResponse:", ex.toString());
+                }
+                if(checkResult!=null&&checkResult.equals("SUCCESS")){
+
+                    //Toast.makeText(CheckActivity.this,"签到成功",Toast.LENGTH_LONG).show();
+                    // textview_serious.setText(checkpercent);
+                    info = checkpercent;
+                }
+                else if(checkResult!=null&&checkResult.equals("INPUTDATA_ERROR")){
+
+                    //Toast.makeText(SigninActivity.this,resignResult+"，签到失败",Toast.LENGTH_LONG).show();
+                    //textview_serious.setText("错啦太惨了");
+                    info = "传送有误";
+                }
+                Message msg1 = new Message();
+                //msg1.what = msg.what;
+                msg1.obj =info;
+                //通知主线程去更新UI
+                mUIHandler.sendMessage(msg1);
+            }
+        };
+        //Handler childHandler= new Handler(mBackgroundThread.getLooper(),new ChildCallback());
+
+    }
+    class ChildCallback implements Handler.Callback {
+        @Override
+        public boolean handleMessage(Message msg) {
+            //在子线程中进行网络请求
+            commuInfo();
+            //通知主线程去更新UI
+            //mUIHandler.sendMessage(msg1);
+            return false;
+        }
+    }
     /**
      * Stops the background thread and its {@link Handler}.
      */
@@ -718,16 +848,6 @@ public class Camera2BasicFragment extends Fragment
         }
     }
 
-    private TextView textview_serious;
-    private TextView textview_getdistracted;
-
-    private class commuThread extends Thread{
-        @Override
-        public void run(){
-
-        }
-    }
-private ImageReader traltReader;
     /**
      * Creates a new {@link CameraCaptureSession} for camera preview.
      */
@@ -746,9 +866,7 @@ private ImageReader traltReader;
             mPreviewRequestBuilder
                     = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             mPreviewRequestBuilder.addTarget(surface);
-            //mPreviewRequestBuilder.addTarget(traltReader.getSurface());
-            //Log.i("LoginResponse:", "让我看看是谁");
-
+            //mPreviewRequestBuilder.addTarget(mImageReader.getSurface());
             // Here, we create a CameraCaptureSession for camera preview.
             mCameraDevice.createCaptureSession(Arrays.asList(surface, mImageReader.getSurface()),
                     new CameraCaptureSession.StateCallback() {
@@ -772,7 +890,7 @@ private ImageReader traltReader;
                                 // Finally, we start displaying the camera preview.
                                 mPreviewRequest = mPreviewRequestBuilder.build();
                                 mCaptureSession.setRepeatingRequest(mPreviewRequest,
-                                        mCaptureCallback, mBackgroundHandler);
+                                        mCaptureCallback, null);
                             } catch (CameraAccessException e) {
                                 e.printStackTrace();
                             }
@@ -785,7 +903,6 @@ private ImageReader traltReader;
                         }
                     }, null
             );
-            //Log.i("LoginResponse:", "结束");
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
@@ -842,7 +959,7 @@ private ImageReader traltReader;
             // Tell #mCaptureCallback to wait for the lock.
             mState = STATE_WAITING_LOCK;
             mCaptureSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback,
-                    mBackgroundHandler);
+                    null);
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
@@ -860,7 +977,7 @@ private ImageReader traltReader;
             // Tell #mCaptureCallback to wait for the precapture sequence to be set.
             mState = STATE_WAITING_PRECAPTURE;
             mCaptureSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback,
-                    mBackgroundHandler);
+                    null);
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
@@ -936,11 +1053,11 @@ private ImageReader traltReader;
                     CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
             setAutoFlash(mPreviewRequestBuilder);
             mCaptureSession.capture(mPreviewRequestBuilder.build(), mCaptureCallback,
-                    mBackgroundHandler);
+                    null);
             // After this, the camera will go back to the normal state of preview.
             mState = STATE_PREVIEW;
             mCaptureSession.setRepeatingRequest(mPreviewRequest, mCaptureCallback,
-                    mBackgroundHandler);
+                    null);
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
