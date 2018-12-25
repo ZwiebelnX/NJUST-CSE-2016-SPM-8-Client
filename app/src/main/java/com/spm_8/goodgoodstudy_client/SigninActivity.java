@@ -1,6 +1,7 @@
 package com.spm_8.goodgoodstudy_client;
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 
@@ -64,6 +65,7 @@ public class SigninActivity extends AppCompatActivity {
     FixGridLayout fixGridLayout;//签到框
     boolean isReSigning=false;//是否处于签到状态
     private String resignResult;//重签返回结果
+    ProgressDialog waitingDialog;//等待框Loading...
 
 
     @Override
@@ -74,7 +76,7 @@ public class SigninActivity extends AppCompatActivity {
 
         fixGridLayout=findViewById(R.id.resignList);
         fixGridLayout.setmCellHeight(80);
-        fixGridLayout.setmCellWidth(140);
+        fixGridLayout.setmCellWidth(150);
 
 
 
@@ -167,6 +169,13 @@ public class SigninActivity extends AppCompatActivity {
                        Log.d("图片",dataString);
 
 
+                       waitingDialog=new ProgressDialog(SigninActivity.this);
+                       waitingDialog.setTitle("正在上传图片");
+                       waitingDialog.setMessage("等待中...");
+                       waitingDialog.setIndeterminate(true);
+                       waitingDialog.setCancelable(false);
+                       waitingDialog.show();
+
                        MultipartBody.Builder builder=new MultipartBody.Builder();
                        builder.setType(MultipartBody.FORM);
                        builder.addFormDataPart("img","signin.jpg",fileBody);
@@ -179,7 +188,7 @@ public class SigninActivity extends AppCompatActivity {
                        final Request request = new Request.Builder().url("http://111.230.31.228:8080/SPM/sign.sign")
                                                                             .post(requestBody).build();
                        //单独设置参数 比如读取超时时间
-                       final Call call = client.newBuilder().writeTimeout(50, TimeUnit.SECONDS).build().newCall(request);
+                       final Call call = client.newBuilder().writeTimeout(10, TimeUnit.SECONDS).build().newCall(request);
 
 
                        call.enqueue(callback);
@@ -203,21 +212,26 @@ public class SigninActivity extends AppCompatActivity {
    private Callback callback=new Callback() {
        @Override
        public void onFailure(Call call, IOException e) {
+
+
            Log.w("LoginFalse:",e.toString());
        }
 
        @Override
        public void onResponse(Call call, Response response) throws IOException {
            try{
+
                String str = new String(response.body().bytes(), "utf-8");
 
                Log.w("signinResponse:", str);
+
                Message msg = signHander.obtainMessage();
                msg.obj = str;
                msg.sendToTarget();
 
            }catch (Exception ex){
                Log.i("LoginResponse:", ex.toString());
+
            }
 
        }
@@ -225,6 +239,8 @@ public class SigninActivity extends AppCompatActivity {
     private Handler signHander=new Handler(){
         public void handleMessage(Message msg){
             try{
+                waitingDialog.cancel();
+
 
                 String str=(String)msg.obj;
                 JSONObject json = new JSONObject(str);
@@ -253,6 +269,7 @@ public class SigninActivity extends AppCompatActivity {
             }catch (Exception ex){
                 Log.d("signResponse:", ex.toString());
             }
+
             if(resignResult!=null&&resignResult.equals("SUCCESS")){
 
                 Toast.makeText(SigninActivity.this,"签到成功",Toast.LENGTH_LONG).show();
