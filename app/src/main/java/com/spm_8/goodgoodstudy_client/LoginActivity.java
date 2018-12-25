@@ -12,6 +12,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 import org.json.*;
 
+import com.R;
 import com.otherclass.Course;
 
 import java.io.IOException;
@@ -113,18 +114,21 @@ public class LoginActivity extends AppCompatActivity {
 
 
     };
-    //UI操作放在了hander里
-    private Handler handler=new Handler(){
+    //UI操作放在了handler里
+    private  Handler handler=new Handler(){
         public void handleMessage(Message msg){
             try{
                 courses=new ArrayList<>();
                 String str=(String)msg.obj;
+                Log.d("LoginResponse:",str);
                 JSONObject json = new JSONObject(str);
+
                 result=json.getString("msg");
                 JSONArray array=(JSONArray) json.get("courseList");
 
             for(int i=0;i<array.length();i++){
                 JSONObject obj = (JSONObject)array.get(i);
+
 
                 Course course=new Course(obj.getString("courseID")
                                         ,obj.getString("courseName")
@@ -137,7 +141,7 @@ public class LoginActivity extends AppCompatActivity {
             }catch (Exception ex){
                 Log.d("LoginResponse:", ex.toString());
             }
-            if(result.equals("SUCCESS_TEACHER")||result.equals("SUCCESS_ADMIN")){
+            if((result!=null&&result.equals("SUCCESS_TEACHER"))||(result!=null&&result.equals("SUCCESS_ADMIN"))){
 
                 Toast.makeText(LoginActivity.this,"登录成功",Toast.LENGTH_LONG).show();
                 intent.putExtra("courses", (Serializable)courses);
