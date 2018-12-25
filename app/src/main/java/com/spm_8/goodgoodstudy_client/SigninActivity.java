@@ -60,7 +60,7 @@ public class SigninActivity extends AppCompatActivity {
     Intent intent;//状态识别
     private List<Student> students;//没到的学生列表
     private List<Student>reSignStudents;//要重新签到的学生列表
-    static int times=0;//签到次数
+    String times;//签到次数
     FixGridLayout fixGridLayout;//签到框
     boolean isReSigning=false;//是否处于签到状态
     private String resignResult;//重签返回结果
@@ -123,7 +123,7 @@ public class SigninActivity extends AppCompatActivity {
                 //向服务器发请求
                     isReSigning=false;
                     Resign();
-                    setSign();
+
 
 
                 }
@@ -165,7 +165,7 @@ public class SigninActivity extends AppCompatActivity {
                        MediaType type=MediaType.parse("application/octet-stream");
                        RequestBody fileBody=RequestBody.create(type,bytes);
                        Log.d("图片",dataString);
-                       times+=1;
+
 
                        MultipartBody.Builder builder=new MultipartBody.Builder();
                        builder.setType(MultipartBody.FORM);
@@ -230,7 +230,7 @@ public class SigninActivity extends AppCompatActivity {
                 JSONObject json = new JSONObject(str);
 
                 resignResult=json.getString("msg");
-                times=Integer.parseInt(json.getString("signCnt"));
+                times=json.getString("signCnt");
                 JSONArray array=(JSONArray) json.get("signFailedList");
 
                 students=new ArrayList<>();
@@ -273,7 +273,7 @@ public class SigninActivity extends AppCompatActivity {
         String path="http://111.230.31.228:8080/SPM/resign.sign";
         JSONObject jsonObject=new JSONObject();
         try{
-            jsonObject.put("signCnt",new Integer(times));
+            jsonObject.put("signCnt",times);
             jsonObject.put("courseID",courseID);
 
             JSONArray jsonArray=new JSONArray();
@@ -352,6 +352,7 @@ public class SigninActivity extends AppCompatActivity {
                     students.remove(reSignStudents.get(i));
                 }
                 reSignStudents.clear();
+                setSign();
 
 
 
@@ -362,6 +363,7 @@ public class SigninActivity extends AppCompatActivity {
 
                 Toast.makeText(SigninActivity.this,resignResult+"，补签失败",Toast.LENGTH_LONG).show();
 
+                setSign();
             }
          }catch (Exception ex){
             Log.d("LoginResponseEX:", ex.toString());
