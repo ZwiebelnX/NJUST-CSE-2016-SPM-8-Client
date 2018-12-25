@@ -92,7 +92,7 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class Camera2BasicFragment extends Fragment
-        implements View.OnClickListener, ActivityCompat.OnRequestPermissionsResultCallback {
+        implements ActivityCompat.OnRequestPermissionsResultCallback {
 
     /**
      * Conversion from screen rotation to JPEG orientation.
@@ -162,6 +162,7 @@ public class Camera2BasicFragment extends Fragment
     private String mtype;
     private String checkResult;
     private String checkpercent;
+    private ImageView image;
 
     private final TextureView.SurfaceTextureListener mSurfaceTextureListener
             = new TextureView.SurfaceTextureListener() {
@@ -315,9 +316,23 @@ public class Camera2BasicFragment extends Fragment
     /**
      * A {@link CameraCaptureSession.CaptureCallback} that handles events related to JPEG capture.
      */
+    public Bitmap rotaingImageView(int angle , Bitmap bitmap) {
+        //旋转图片 动作
+        Matrix matrix = new Matrix();
+        matrix.postRotate(angle);
+        // 创建新的图片
+        return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+    }
 
     private void commuInfo(){
-        Bitmap photo = mTextureView.getBitmap();
+        Bitmap bmshow = mTextureView.getBitmap();
+        Bitmap photo = rotaingImageView(270,bmshow);
+        image.setImageBitmap(photo);
+        if(null!=photo){
+            Log.i("kanxiadaxiao_photo",String.valueOf(photo.getHeight())+" "+String.valueOf(photo.getWidth()));
+            Log.i("kanxiadaxiao_bmshow",String.valueOf(bmshow.getHeight())+" "+String.valueOf(bmshow.getWidth()));
+        }
+       // Log.i("letmesese","应该两秒传图一次");
         Log.i("bitmap","应该拿到bitmap 2秒一个");
         if(null !=photo) {
 
@@ -330,14 +345,14 @@ public class Camera2BasicFragment extends Fragment
                 String dataString=new String(bytes,"ISO-8859-1");
                 MediaType type=MediaType.parse("application/octet-stream");
                 RequestBody fileBody=RequestBody.create(type,bytes);
-                //Log.d("图片",dataString);
+                Log.d("chuanguoqudedongxi",mcourseID+mtype+String.valueOf(mCNT));
                 //times+=1;
 
                 MultipartBody.Builder builder=new MultipartBody.Builder();
                 builder.setType(MultipartBody.FORM);
                 builder.addFormDataPart("img","check.jpg",fileBody);
                 builder.addFormDataPart("courseID",mcourseID);
-                builder.addFormDataPart("Type",mtype);
+                builder.addFormDataPart("type",mtype);
                 builder.addFormDataPart("checkCNT",String.valueOf(mCNT));
 
                 RequestBody requestBody=builder.build();
@@ -538,8 +553,6 @@ public class Camera2BasicFragment extends Fragment
 
     @Override
     public void onViewCreated(final View view, Bundle savedInstanceState) {
-        view.findViewById(R.id.picture).setOnClickListener(this);
-        view.findViewById(R.id.info).setOnClickListener(this);
         mTextureView = (AutoFitTextureView) view.findViewById(R.id.texture);
         textview_serious = view.findViewById(R.id.textView_serious);
         textview_getdistracted = view.findViewById(R.id.textView_getdistracted);
@@ -548,6 +561,7 @@ public class Camera2BasicFragment extends Fragment
         mCNT = 0;
         mtype = "FIRST_CHECK";
         client = new OkHttpClient();
+        image = view.findViewById(R.id.image);
     }
 
     @Override
@@ -643,6 +657,7 @@ public class Camera2BasicFragment extends Fragment
                 boolean swappedDimensions = false;
                 switch (displayRotation) {
                     case Surface.ROTATION_0:
+                        Log.i("camerainfo","赚了0度");
                     case Surface.ROTATION_180:
                         if (mSensorOrientation == 90 || mSensorOrientation == 270) {
                             swappedDimensions = true;
@@ -768,11 +783,12 @@ public class Camera2BasicFragment extends Fragment
      * Starts a background thread and its {@link Handler}.
      */
 
-    private Handler mUIHandler = new Handler(){
+    private  Handler mUIHandler = new Handler(){
         @Override
         public void handleMessage(Message msg) {
              String info = (String) msg.obj;
              textview_serious.setText(info);
+
         }
 
     };
@@ -1060,26 +1076,6 @@ public class Camera2BasicFragment extends Fragment
                     null);
         } catch (CameraAccessException e) {
             e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.picture: {
-                takePicture();
-                break;
-            }
-            case R.id.info: {
-                Activity activity = getActivity();
-                if (null != activity) {
-                    new AlertDialog.Builder(activity)
-                            .setMessage(R.string.intro_message)
-                            .setPositiveButton(android.R.string.ok, null)
-                            .show();
-                }
-                break;
-            }
         }
     }
 
