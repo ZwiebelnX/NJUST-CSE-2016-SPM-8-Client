@@ -163,6 +163,7 @@ public class Camera2BasicFragment extends Fragment
     private String checkResult;
     private String checkpercent;
     private ImageView image;
+    private static final int DELAY_TIME = 10000;
 
     private final TextureView.SurfaceTextureListener mSurfaceTextureListener
             = new TextureView.SurfaceTextureListener() {
@@ -325,15 +326,16 @@ public class Camera2BasicFragment extends Fragment
     }
 
     private void commuInfo(){
-        Bitmap bmshow = mTextureView.getBitmap();
-        Bitmap photo = rotaingImageView(270,bmshow);
-        image.setImageBitmap(photo);
+        //Bitmap bmshow = mTextureView.getBitmap();
+        //Bitmap photo = rotaingImageView(270,bmshow);
+        Bitmap photo= mTextureView.getBitmap();
+        //image.setImageBitmap(photo);
         if(null!=photo){
-            Log.i("kanxiadaxiao_photo",String.valueOf(photo.getHeight())+" "+String.valueOf(photo.getWidth()));
-            Log.i("kanxiadaxiao_bmshow",String.valueOf(bmshow.getHeight())+" "+String.valueOf(bmshow.getWidth()));
+            //Log.i("kanxiadaxiao_photo",String.valueOf(photo.getHeight())+" "+String.valueOf(photo.getWidth()));
+            //Log.i("kanxiadaxiao_bmshow",String.valueOf(bmshow.getHeight())+" "+String.valueOf(bmshow.getWidth()));
         }
-       // Log.i("letmesese","应该两秒传图一次");
-        Log.i("bitmap","应该拿到bitmap 2秒一个");
+        // Log.i("letmesese","应该两秒传图一次");
+        Log.i("bitmap","应该拿到bitmap "+DELAY_TIME/1000 + "秒一个");
         if(null !=photo) {
 
             try{
@@ -404,7 +406,7 @@ public class Camera2BasicFragment extends Fragment
                 case STATE_PREVIEW: {
                     // We have nothing to do when the camera preview is working normally.
                     Long time = System.currentTimeMillis();
-                    if(time - mtime <=2000)
+                    if(time - mtime <=DELAY_TIME)
                         return;
                     mtime = time;
                     commuInfo();//2000ms后传数据
@@ -555,7 +557,7 @@ public class Camera2BasicFragment extends Fragment
     public void onViewCreated(final View view, Bundle savedInstanceState) {
         mTextureView = (AutoFitTextureView) view.findViewById(R.id.texture);
         textview_serious = view.findViewById(R.id.textView_serious);
-        textview_getdistracted = view.findViewById(R.id.textView_getdistracted);
+        //textview_getdistracted = view.findViewById(R.id.textView_getdistracted);
         mtime = System.currentTimeMillis();
         textview_serious.setText(mcourseID);
         mCNT = 0;
@@ -783,11 +785,20 @@ public class Camera2BasicFragment extends Fragment
      * Starts a background thread and its {@link Handler}.
      */
 
+    private String standlizeResult(String restr){
+        int pointIndex = restr.indexOf(".");
+        if(pointIndex==-1)
+            return restr;
+
+        return restr.substring(0,pointIndex+2)+"% 学生未听课";
+    }
+
     private  Handler mUIHandler = new Handler(){
         @Override
         public void handleMessage(Message msg) {
-             String info = (String) msg.obj;
-             textview_serious.setText(info);
+            String info = standlizeResult((String) msg.obj);
+            //String info = standlizeResult("100.0");
+            textview_serious.setText(info);
 
         }
 
@@ -800,7 +811,7 @@ public class Camera2BasicFragment extends Fragment
             @Override
             public void handleMessage(Message msg){
                 //改ui
-                String info=" 烫烫烫";
+                String info=" 解析异常";
                 try{
 
                     String str=(String)msg.obj;
@@ -810,8 +821,11 @@ public class Camera2BasicFragment extends Fragment
                     if(checkResult!=null&&checkResult.equals("SERVER_ERROR")){
                         info = "服务器错";
                     }else{
-                        mCNT=Integer.parseInt(json.getString("checkCNT"));
                         checkpercent = json.getString("result");
+                        if(null!=json.getString("checkCNT"))
+                         mCNT=Integer.parseInt(json.getString("checkCNT"));
+
+
                         mtype = "RECHECK";
                     }
 
@@ -830,9 +844,11 @@ public class Camera2BasicFragment extends Fragment
                     //textview_serious.setText("错啦太惨了");
                     info = "传送有误";
                 }
+                //textview_serious.setText(info);
                 Message msg1 = new Message();
-                //msg1.what = msg.what;
+                msg1.what = msg.what;
                 msg1.obj =info;
+                Log.i("stringstringstinr",info);
                 //通知主线程去更新UI
                 mUIHandler.sendMessage(msg1);
             }
