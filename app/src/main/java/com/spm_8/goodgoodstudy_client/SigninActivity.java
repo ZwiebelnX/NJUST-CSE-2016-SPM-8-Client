@@ -80,7 +80,12 @@ public class SigninActivity extends AppCompatActivity {
 
 
 
-        client=new OkHttpClient();
+        client = new OkHttpClient.Builder()
+                .connectTimeout(30, TimeUnit.SECONDS)//设置连接超时时间
+                 .readTimeout(30, TimeUnit.SECONDS)//设置读取超时时间
+
+                .build();
+
         //获取课程信息
         Course course=(Course) getIntent().getSerializableExtra("course");
         TextView coursename=findViewById(R.id.courseName);
@@ -188,7 +193,7 @@ public class SigninActivity extends AppCompatActivity {
                        final Request request = new Request.Builder().url("http://111.230.31.228:8080/SPM/sign.sign")
                                                                             .post(requestBody).build();
                        //单独设置参数 比如读取超时时间
-                       final Call call = client.newBuilder().writeTimeout(50, TimeUnit.SECONDS).build().newCall(request);
+                       final Call call = client.newCall(request);
 
 
                        call.enqueue(callback);
