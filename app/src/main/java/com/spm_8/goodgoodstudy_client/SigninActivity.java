@@ -187,7 +187,7 @@ public class SigninActivity extends AppCompatActivity {
                        final Request request = new Request.Builder().url("http://111.230.31.228:8080/SPM/sign.sign")
                                                                             .post(requestBody).build();
                        //单独设置参数 比如读取超时时间
-                       final Call call = client.newBuilder().writeTimeout(10, TimeUnit.SECONDS).build().newCall(request);
+                       final Call call = client.newBuilder().writeTimeout(50, TimeUnit.SECONDS).build().newCall(request);
 
 
                        call.enqueue(callback);
@@ -258,7 +258,7 @@ public class SigninActivity extends AppCompatActivity {
 
                     students.add(student);
                 }
-                Log.w("signinResponse:", students.toString());
+
                 setSign();
 
 
