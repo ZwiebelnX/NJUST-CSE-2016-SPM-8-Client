@@ -39,23 +39,28 @@
 
 
     </FrameLayout>
+
     <TextView
         android:id="@+id/textView_serious"
-        android:layout_width="120dp"
+        android:layout_width="160dp"
         android:layout_height="55dp"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginStart="222dp"
+        android:layout_marginStart="208dp"
         android:layout_marginTop="214dp"
-        android:layout_marginEnd="49dp"
+        android:layout_marginEnd="18dp"
         android:layout_marginBottom="242dp"
-        android:text="哈哈哈哈哈哈" />
+        android:alpha="0.5"
+        android:background="@android:color/holo_blue_light"
+        android:gravity="center"
+        android:text="哈哈哈哈哈哈"
+        android:textSize="20sp" />
 
     <TextView
         android:id="@+id/textView_getdistracted"
-        android:layout_width="120dp"
+        android:layout_width="160dp"
         android:layout_height="55dp"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
@@ -63,7 +68,11 @@
         android:layout_alignParentBottom="true"
         android:layout_marginStart="18dp"
         android:layout_marginTop="214dp"
-        android:layout_marginEnd="246dp"
+        android:layout_marginEnd="214dp"
         android:layout_marginBottom="242dp"
-        android:text="TextView" />
+        android:alpha="0.5"
+        android:background="@android:color/holo_blue_light"
+        android:gravity="center"
+        android:text="TextView"
+        android:textSize="20sp" />
 </RelativeLayout>
