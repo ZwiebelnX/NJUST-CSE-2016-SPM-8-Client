@@ -99,7 +99,7 @@ public class SigninActivity extends AppCompatActivity {
         }
         //摄像头开启的点击事件
         imageView=(ImageView)findViewById(R.id.picture);
-        ImageButton button=findViewById(R.id.startPhoto);
+        Button button=findViewById(R.id.startPhoto);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
