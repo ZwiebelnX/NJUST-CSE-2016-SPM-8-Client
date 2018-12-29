@@ -14,18 +14,18 @@ import android.os.Bundle;
 import android.util.Log;
 
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.R;
 import com.otherclass.Course;
-import com.otherclass.FixGridLayout;
+import com.otherclass.ReSigninAdapter;
+import com.otherclass.SigninAdapter;
 import com.otherclass.Student;
 
 import org.json.JSONArray;
@@ -33,11 +33,8 @@ import org.json.JSONObject;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import okhttp3.Call;
@@ -59,13 +56,17 @@ public class SigninActivity extends AppCompatActivity {
     private String courseID;//课程id
     private OkHttpClient client;
     Intent intent;//状态识别
-    private List<Student> students;//没到的学生列表
+    private List<Student> students;//所有学生列表
+    private List<Student>noStudents;//未签到的学生列表
     private List<Student>reSignStudents;//要重新签到的学生列表
     String times;//签到次数
-    FixGridLayout fixGridLayout;//签到框
+
     boolean isReSigning=false;//是否处于签到状态
     private String resignResult;//重签返回结果
     ProgressDialog waitingDialog;//等待框Loading...
+    SigninAdapter signinAdapter;//学生信息框的adapter
+    ListView listView;//listview框
+
 
 
     @Override
@@ -74,17 +75,13 @@ public class SigninActivity extends AppCompatActivity {
         setContentView(R.layout.activity_signin);
         intent=new Intent(this,CheckActivity.class);
 
-        fixGridLayout=findViewById(R.id.resignList);
-        fixGridLayout.setmCellHeight(80);
-        fixGridLayout.setmCellWidth(150);
 
 
 
         client = new OkHttpClient.Builder()
                 .connectTimeout(30, TimeUnit.SECONDS)//设置连接超时时间
                  .readTimeout(30, TimeUnit.SECONDS)//设置读取超时时间
-
-                .build();
+               .build();
 
         //获取课程信息
         Course course=(Course) getIntent().getSerializableExtra("course");
@@ -99,7 +96,7 @@ public class SigninActivity extends AppCompatActivity {
         }
         //摄像头开启的点击事件
         imageView=(ImageView)findViewById(R.id.picture);
-        Button button=findViewById(R.id.startPhoto);
+        ImageButton button=findViewById(R.id.startPhoto);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -139,6 +136,21 @@ public class SigninActivity extends AppCompatActivity {
                     intent.putExtra("course",(Course) getIntent().getSerializableExtra("course"));
                     startActivity(intent);
                 }
+            }
+        });
+        //设置学生列表ListView
+        students=new ArrayList();
+        noStudents=new ArrayList();
+        reSignStudents=new ArrayList();
+        listView=findViewById(R.id.signinList);
+        signinAdapter=new SigninAdapter(this,students);
+        listView.setAdapter(signinAdapter);
+
+        //设置每个item的点击事件
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+
             }
         });
 
@@ -185,14 +197,17 @@ public class SigninActivity extends AppCompatActivity {
                        builder.setType(MultipartBody.FORM);
                        builder.addFormDataPart("img","signin.jpg",fileBody);
                        builder.addFormDataPart("courseID",courseID);
-
                        builder.addFormDataPart("signType","SIGN");
 
                        RequestBody requestBody=builder.build();
 
-                       final Request request = new Request.Builder().url("http://111.230.31.228:8080/SPM/sign.sign")
-                                                                            .post(requestBody).build();
-                       //单独设置参数 比如读取超时时间
+
+                       Request request=new Request.Builder()
+                               .url("http://111.230.31.228:8080/SPM/sign.sign")
+                               .post(requestBody)
+                                .build();
+                       Log.d("requestBuilder",request.toString());
+
                        final Call call = client.newCall(request);
 
 
@@ -219,7 +234,7 @@ public class SigninActivity extends AppCompatActivity {
        public void onFailure(Call call, IOException e) {
 
 
-           Log.w("LoginFalse:",e.toString());
+           Log.w("signinFail",e.toString());
        }
 
        @Override
@@ -228,14 +243,14 @@ public class SigninActivity extends AppCompatActivity {
 
                String str = new String(response.body().bytes(), "utf-8");
 
-               Log.w("signinResponse:", str);
+               Log.w("signinResponse", str);
 
                Message msg = signHander.obtainMessage();
                msg.obj = str;
                msg.sendToTarget();
 
            }catch (Exception ex){
-               Log.i("LoginResponse:", ex.toString());
+               Log.i("signinResponse", ex.toString());
 
            }
 
@@ -254,18 +269,23 @@ public class SigninActivity extends AppCompatActivity {
                 times=json.getString("signCnt");
                 JSONArray array=(JSONArray) json.get("signFailedList");
 
-                students=new ArrayList<>();
+                students.clear();
+                noStudents.clear();
                 for(int i=0;i<array.length();i++){
                     JSONObject obj = (JSONObject)array.get(i);
 
 
                     Student student=new Student(obj.getString("studentName")
-                            ,obj.getString("studentID"));
+                            ,obj.getString("studentID"),obj.getString("signResult"));
+                    if(obj.getString("signResult").equals("NO")){
+                        noStudents.add(student);
+                    }
 
                     students.add(student);
                 }
 
-                setSign();
+                signinAdapter.notifyDataSetChanged();
+
 
 
 
@@ -369,9 +389,15 @@ public class SigninActivity extends AppCompatActivity {
 
                 Toast.makeText(SigninActivity.this,"补签成功",Toast.LENGTH_LONG).show();
 
-                //更新没到名单，清除重新签到名单
+                //更新没到名单
                 for(int i=0;i<reSignStudents.size();i++){
-                    students.remove(reSignStudents.get(i));
+
+                    noStudents.remove(reSignStudents.get(i));
+                    for(int j=0;j<students.size();j++){
+                        if(students.get(j).getStudentID().equals(reSignStudents.get(i).getStudentID())){
+                            students.get(j).setSignResult("YES");
+                        }
+                    }
                 }
                 reSignStudents.clear();
                 setSign();
@@ -396,48 +422,34 @@ public class SigninActivity extends AppCompatActivity {
 
     private void setSign(){
 
-        fixGridLayout.removeAllViews();
+        listView.setAdapter(signinAdapter);
+        signinAdapter.notifyDataSetChanged();
 
-        for(int i=0;i<students.size();i++){
-            TextView textView=new TextView(this);
-            textView.setText(students.get(i).getStudentName());
-
-            fixGridLayout.addView(textView);
-
-        }
     }
     private void setReSign(){
-        reSignStudents=new ArrayList<>();
 
-        fixGridLayout.removeAllViews();
-        for(int i=0;i<students.size();i++){
-            CheckBox checkBox=new CheckBox(this);
-            checkBox.setText(students.get(i).getStudentName());
 
-            checkBox.setOnCheckedChangeListener(checkBoxListener);
-            fixGridLayout.addView(checkBox);
+        final ReSigninAdapter reSigninAdapter=new ReSigninAdapter(this,noStudents);
+        listView.setAdapter(reSigninAdapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
 
-        }
+                reSignStudents.add(noStudents.get(i));
+                if(noStudents.get(i).isIschecked()==false){
+                    noStudents.get(i).setIschecked(true);
+                }
+                else{
+                    noStudents.get(i).setIschecked(false);
+                }
+                reSigninAdapter.notifyDataSetChanged();
+
+
+            }
+        });
+
 
     }
-    private CompoundButton.OnCheckedChangeListener checkBoxListener=new CompoundButton.OnCheckedChangeListener(){
 
-        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            if(isChecked){
-                String student=(String)buttonView.getText();
-                Log.w("reSignStudent",student);
-                for(int i=0;i<students.size();i++){
-                    if(students.get(i).getStudentName().equals(student)){
-                        reSignStudents.add(students.get(i));
-
-                    }
-                }
-            }
-
-
-
-
-        }
-    };
 
 }
