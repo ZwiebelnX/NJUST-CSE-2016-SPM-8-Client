@@ -7,11 +7,11 @@
 
     <com.otherclass.AutoFitTextureView
         android:id="@+id/texture"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="149dp"
+        android:layout_height="225dp"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:layout_marginStart="0dp"
+        android:layout_marginStart="262dp"
         android:layout_marginTop="0dp" />
 
     <FrameLayout
@@ -27,16 +27,16 @@
 
     <TextView
         android:id="@+id/textView_serious"
-        android:layout_width="248dp"
-        android:layout_height="136dp"
+        android:layout_width="93dp"
+        android:layout_height="63dp"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
-        android:layout_marginStart="96dp"
-        android:layout_marginTop="274dp"
-        android:layout_marginEnd="67dp"
-        android:layout_marginBottom="193dp"
+        android:layout_marginStart="318dp"
+        android:layout_marginTop="0dp"
+        android:layout_marginEnd="0dp"
+        android:layout_marginBottom="598dp"
         android:alpha="0.5"
         android:background="@android:color/darker_gray"
         android:gravity="center"
