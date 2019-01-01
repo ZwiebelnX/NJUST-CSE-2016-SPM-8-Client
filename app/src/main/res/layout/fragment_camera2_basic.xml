@@ -6,14 +6,13 @@
     android:layout_height="match_parent">
 
 
-
     <com.otherclass.AutoFitTextureView
         android:id="@+id/texture"
-        android:layout_width="300dp"
-        android:layout_height="400dp"
+        android:layout_width="127dp"
+        android:layout_height="172dp"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:layout_marginStart="208dp"
+        android:layout_marginStart="284dp"
         android:layout_marginTop="0dp" />
 
     <FrameLayout

@@ -127,10 +127,10 @@ public class CheckActivity extends AppCompatActivity implements Camera2BasicFrag
         pieChart.setTransparentCircleColor(Color.WHITE);//设置圆环的颜色
         pieChart.setTransparentCircleAlpha(110);//设置圆环的透明度[0,255]
         pieChart.setHoleRadius(20f);//饼状图中间的圆的半径大小
-        pieChart.setTransparentCircleRadius(61f);//设置圆环的半径值
+        pieChart.setTransparentCircleRadius(81f);//设置圆环的半径值
         pieChart.setDrawCenterText(true);//是否绘制中间的文字
         pieChart.setRotationAngle(0);//设置饼状图旋转的角度
-// 触摸旋转
+        // 触摸旋转
         pieChart.setRotationEnabled(true);;//设置饼状图是否可以旋转(默认为true)
         pieChart.setCenterTextSize(6f);
         Legend l = pieChart.getLegend();
