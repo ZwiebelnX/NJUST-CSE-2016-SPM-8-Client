@@ -176,7 +176,7 @@ public class SigninActivity extends AppCompatActivity {
                        Bitmap photo = (Bitmap) data.getExtras().get("data");
                        imageView.setImageBitmap(photo);
                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                       photo.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+                       photo.compress(Bitmap.CompressFormat.JPEG, 50, baos);
                        byte[]bytes=null;
                        bytes=baos.toByteArray();
                        baos.close();
@@ -195,7 +195,7 @@ public class SigninActivity extends AppCompatActivity {
 
                        MultipartBody.Builder builder=new MultipartBody.Builder();
                        builder.setType(MultipartBody.FORM);
-                       builder.addFormDataPart("img","signin.jpg",fileBody);
+                       builder.addFormDataPart("images","signin.jpg",fileBody);
                        builder.addFormDataPart("courseID",courseID);
                        builder.addFormDataPart("signType","SIGN");
 

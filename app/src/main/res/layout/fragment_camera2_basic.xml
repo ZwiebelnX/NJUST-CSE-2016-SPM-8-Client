@@ -5,13 +5,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+
+
     <com.otherclass.AutoFitTextureView
         android:id="@+id/texture"
-        android:layout_width="149dp"
-        android:layout_height="225dp"
+        android:layout_width="300dp"
+        android:layout_height="400dp"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:layout_marginStart="262dp"
+        android:layout_marginStart="208dp"
         android:layout_marginTop="0dp" />
 
     <FrameLayout
@@ -25,22 +27,6 @@
 
     </FrameLayout>
 
-    <TextView
-        android:id="@+id/textView_serious"
-        android:layout_width="93dp"
-        android:layout_height="63dp"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentBottom="true"
-        android:layout_marginStart="318dp"
-        android:layout_marginTop="0dp"
-        android:layout_marginEnd="0dp"
-        android:layout_marginBottom="598dp"
-        android:alpha="0.5"
-        android:background="@android:color/darker_gray"
-        android:gravity="center"
-        android:text="等待检测"
-        android:textSize="20sp" />
+
 
 </RelativeLayout>

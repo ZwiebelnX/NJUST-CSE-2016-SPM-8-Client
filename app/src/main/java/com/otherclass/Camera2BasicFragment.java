@@ -156,8 +156,8 @@ public class Camera2BasicFragment extends Fragment
 
     // new variable
     private long mtime;
-    private TextView textview_serious;
-    private TextView textview_getdistracted;
+    //private TextView textview_serious;
+    //private TextView textview_getdistracted;
     private String mcourseID;
     private OkHttpClient client;
     private int mCNT;
@@ -168,6 +168,7 @@ public class Camera2BasicFragment extends Fragment
     private static final int DELAY_TIME = 10000;
     private List<Check_Student>  checkstudents;
     CallBackValue callBackValue;
+    private boolean firstflag;
 
     public interface CallBackValue{
         public void SendMessageValue(List<Check_Student> checkstulist);
@@ -294,7 +295,7 @@ public class Camera2BasicFragment extends Fragment
         public void handleMessage(Message msg) {
             String info = standlizeResult((String) msg.obj);
             //String info = standlizeResult("100.0");
-            textview_serious.setText(info);
+            //textview_serious.setText(info);
             callBackValue.SendMessageValue(checkstudents);
         }
 
@@ -319,13 +320,87 @@ public class Camera2BasicFragment extends Fragment
             Long time = System.currentTimeMillis();
             if(time - mtime >DELAY_TIME){
                 mtime = time;
-                commuInfo(data);
+                //commuInfo(data);
+                commuInfo();
             }
             img.close();
 
         }
 
     };
+
+    private void commuInfo(){
+        firstflag = false;
+        Bitmap photo= mTextureView.getBitmap();
+        //image.setImageBitmap(photo);
+        if(null!=photo){
+            Log.i("kanxiadaxiao_photo",String.valueOf(photo.getHeight())+" "+String.valueOf(photo.getWidth()));
+            //Log.i("kanxiadaxiao_bmshow",String.valueOf(bmshow.getHeight())+" "+String.valueOf(bmshow.getWidth()));
+        }
+        // Log.i("letmesese","应该两秒传图一次");
+        Log.i("bitmap","应该拿到bitmap "+DELAY_TIME/1000 + "秒一个");
+        if(null !=photo) {
+
+            try{
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                photo.compress(Bitmap.CompressFormat.JPEG, 50, baos);
+                byte[]bytes=null;
+                bytes=baos.toByteArray();
+                baos.close();
+                String dataString=new String(bytes,"ISO-8859-1");
+                MediaType type=MediaType.parse("application/octet-stream");
+                RequestBody fileBody=RequestBody.create(type,bytes);
+                Log.d("chuanguoqudedongxi",mcourseID+mtype+String.valueOf(mCNT));
+                //times+=1;
+
+                MultipartBody.Builder builder=new MultipartBody.Builder();
+                builder.setType(MultipartBody.FORM);
+                builder.addFormDataPart("images","check.jpg",fileBody);
+                builder.addFormDataPart("courseID",mcourseID);
+                builder.addFormDataPart("type",mtype);
+                //builder.addFormDataPart("checkCNT",String.valueOf(mCNT));
+
+                RequestBody requestBody=builder.build();
+
+                Request request = new Request.Builder().url("http://111.230.31.228:8080/SPM/status.check")
+                        .post(requestBody).build();
+                //单独设置参数 比如读取超时时间
+                Call call = client.newBuilder().writeTimeout(15, TimeUnit.SECONDS).build().newCall(request);
+
+                call.enqueue(mhttpcallback1);
+
+            }catch (Exception e) {
+
+                Log.d("checkERROR",e.toString());
+            }
+        }
+        else
+            Log.i("bitmao","救救孩子，或去不了Bitmap");
+    }
+
+    private Callback mhttpcallback1=new Callback() {
+        @Override
+        public void onFailure(Call call, IOException e) {
+            Log.w("checkFalse:",e.toString());
+        }
+
+        @Override
+        public void onResponse(Call call, Response response) throws IOException {
+            try{
+                String str = new String(response.body().bytes(), "utf-8");
+
+                Log.w("checkResponse:", str);
+
+                Message msg = mBackgroundHandler.obtainMessage();
+                msg.obj = str;
+                msg.sendToTarget();
+            }catch (Exception ex){
+                Log.i("checkResponse:", ex.toString());
+            }
+
+        }
+    };
+
 
     private void commuInfo(byte[] bytes){
 
@@ -342,7 +417,7 @@ public class Camera2BasicFragment extends Fragment
 
                 MultipartBody.Builder builder=new MultipartBody.Builder();
                 builder.setType(MultipartBody.FORM);
-                builder.addFormDataPart("img","check.jpg",fileBody);
+                builder.addFormDataPart("images","check.jpg",fileBody);
                 builder.addFormDataPart("courseID",mcourseID);
                 builder.addFormDataPart("type",mtype);
                 //builder.addFormDataPart("checkCNT",String.valueOf(mCNT));
@@ -354,7 +429,7 @@ public class Camera2BasicFragment extends Fragment
                 //单独设置参数 比如读取超时时间
                 Call call = client.newBuilder().writeTimeout(15, TimeUnit.SECONDS).build().newCall(request);
 
-                call.enqueue(mhttpcallback);
+                call.enqueue(mhttpcallback2);
 
             }catch (Exception e) {
 
@@ -365,7 +440,7 @@ public class Camera2BasicFragment extends Fragment
             Log.i("bitmao","救救孩子，或去不了Bitmap");
     }
 
-    private Callback mhttpcallback=new Callback() {
+    private Callback mhttpcallback2=new Callback() {
         @Override
         public void onFailure(Call call, IOException e) {
             Log.w("checkFalse:",e.toString());
@@ -431,6 +506,12 @@ public class Camera2BasicFragment extends Fragment
             switch (mState) {
                 case STATE_PREVIEW: {
                     // We have nothing to do when the camera preview is working normally.
+                    Long time = System.currentTimeMillis();
+                    if(time - mtime <=DELAY_TIME&&(!firstflag))
+                        return;
+                    mtime = time;
+                    commuInfo();//2000ms后传数据
+
                     break;
                 }
                 case STATE_WAITING_LOCK: {
@@ -576,13 +657,14 @@ public class Camera2BasicFragment extends Fragment
         //view.findViewById(R.id.picture).setOnClickListener(this);
         //view.findViewById(R.id.info).setOnClickListener(this);
         mTextureView = (AutoFitTextureView) view.findViewById(R.id.texture);
-        textview_serious = view.findViewById(R.id.textView_serious);
+        //textview_serious = view.findViewById(R.id.textView_serious);
         //textview_getdistracted = view.findViewById(R.id.textView_getdistracted);
         mtime = System.currentTimeMillis();
-        textview_serious.setText(mcourseID);
+        //textview_serious.setText(mcourseID);
         mCNT = 0;
         mtype = "FIRST_CHECK";
         client = new OkHttpClient();
+        firstflag = true;
     }
 
     @Override
@@ -900,7 +982,7 @@ public class Camera2BasicFragment extends Fragment
             mPreviewRequestBuilder
                     = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             mPreviewRequestBuilder.addTarget(surface);
-            mPreviewRequestBuilder.addTarget(mImageReader.getSurface());
+            //mPreviewRequestBuilder.addTarget(mImageReader.getSurface());
             // Here, we create a CameraCaptureSession for camera preview.
             mCameraDevice.createCaptureSession(Arrays.asList(surface, mImageReader.getSurface()),
                     new CameraCaptureSession.StateCallback() {
