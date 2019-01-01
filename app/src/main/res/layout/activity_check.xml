@@ -44,7 +44,7 @@
 
             <com.github.mikephil.charting.charts.PieChart
                 android:id="@+id/pic_chart"
-                android:layout_width="274dp"
+                android:layout_width="271dp"
                 android:layout_height="match_parent"
                 android:layout_alignBottom="@+id/control"
                 android:layout_alignParentStart="true"
